@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trade Journal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="index.css">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="index.js" defer></script>
+
+</head>
+<body>
+
+<div id="storageBanner" class="storage-banner" hidden>Storage isn't available in this preview — your entries will stay for this session only.</div>
+
+<header class="topbar">
+  <div class="brand"><span class="brand-mark"><i></i><i></i><i></i><i></i></span><span>Trade Journal</span></div>
+  <nav class="tabs">
+    <button class="tab-btn active" data-tab="journal">Journal</button>
+    <button class="tab-btn" data-tab="analytics">Analytics</button>
+    <button class="tab-btn" data-tab="reviews">Reviews</button>
+  </nav>
+</header>
+
+<div class="wrap">
+
+  <!-- ===================== JOURNAL TAB ===================== -->
+  <section id="tab-journal" class="tab-section">
+
+    <div class="equity-hero">
+      <div class="equity-info">
+        <div class="equity-stat"><span class="label">Net P/L</span><span class="value mono" id="heroNetR">+0.0R</span></div>
+        <div class="equity-stat"><span class="label">Win Rate</span><span class="value mono" id="heroWinRate">0%</span></div>
+        <div class="equity-stat"><span class="label">Trades</span><span class="value mono" id="heroTotal">0</span></div>
+      </div>
+      <svg id="equityCurve" viewBox="0 0 600 78" preserveAspectRatio="none"></svg>
+    </div>
+
+    <div class="journal-toolbar">
+      <input type="search" id="pairFilter" placeholder="Filter by pair…">
+      <select id="resultFilter">
+        <option value="all">All</option>
+        <option value="win">Wins</option>
+        <option value="loss">Losses</option>
+        <option value="be">B/E</option>
+      </select>
+      <button class="btn-primary" id="addTradeBtn">+ New Trade</button>
+    </div>
+
+    <div id="tradeList" class="trade-list"></div>
+    <div id="emptyState" class="empty-state" hidden>
+      <div class="display">No trades logged yet</div>
+      <p>Add your first trade to start building your track record.</p>
+      <button class="btn-primary" id="emptyAddBtn">+ Log a trade</button>
+    </div>
+  </section>
+
+  <!-- ===================== ANALYTICS TAB ===================== -->
+  <section id="tab-analytics" class="tab-section" hidden>
+
+    <div class="stats-grid" id="analyticsOverview"></div>
+
+    <div class="panel-card">
+      <h3>R-Multiple Distribution</h3>
+      <div class="hist-chart" id="histChart"></div>
+    </div>
+
+    <div class="panel-card">
+      <h3>Performance by Pair</h3>
+      <div id="pairList"></div>
+    </div>
+
+    <div class="panel-card">
+      <h3>Backup &amp; Export</h3>
+      <p class="panel-sub">Save your journal as a file, or restore it on another device.</p>
+      <div class="data-actions">
+        <button class="btn-secondary" id="exportJsonBtn">Export Backup (.json)</button>
+        <button class="btn-secondary" id="exportCsvBtn">Export Trades (.csv)</button>
+        <label class="btn-secondary file-label">Import Backup<input type="file" id="importFile" accept=".json" hidden></label>
+      </div>
+      <div id="importStatus" class="import-status"></div>
+    </div>
+  </section>
+
+  <!-- ===================== REVIEWS TAB ===================== -->
+  <section id="tab-reviews" class="tab-section" hidden>
+
+    <div class="period-selector">
+      <div class="period-type-pills" id="periodTypePills">
+        <button data-type="weekly">Weekly</button>
+        <button data-type="monthly" class="active">Monthly</button>
+        <button data-type="quarterly">Quarterly</button>
+        <button data-type="semi">Semi-Annual</button>
+        <button data-type="yearly">Yearly</button>
+      </div>
+      <div class="period-nav">
+        <button id="periodPrev" aria-label="Previous period">‹</button>
+        <span id="periodLabel">—</span>
+        <button id="periodNext" aria-label="Next period">›</button>
+      </div>
+    </div>
+
+    <blockquote class="review-quote" id="reviewQuote"></blockquote>
+
+    <div class="stats-grid" id="reviewStats"></div>
+
+    <div class="recommend" id="reviewRecommend"></div>
+
+    <div class="reflection-form">
+      <h3>Reflection</h3>
+      <div class="field">
+        <label>What drove your results this period?</label>
+        <textarea id="rf_drives" placeholder="e.g. Stuck to my rules on trend-day setups, but forced two counter-trend trades out of boredom…"></textarea>
+      </div>
+      <div class="field">
+        <label>What cost you the most? <span class="hint">— mistakes, missed rules, revenge trades</span></label>
+        <textarea id="rf_mistakes" placeholder="Be specific — name the setup, the rule broken, the emotion behind it."></textarea>
+      </div>
+      <div class="field">
+        <label>What will you change next period?</label>
+        <textarea id="rf_improvements" placeholder="One or two concrete adjustments, not a wishlist."></textarea>
+      </div>
+      <div class="field">
+        <label>What drives you to keep improving as a trader?</label>
+        <textarea id="rf_why" placeholder="Your why — the thing that keeps you disciplined when it's not going well."></textarea>
+      </div>
+      <div class="save-row">
+        <button class="btn-primary" id="saveReviewBtn">Save Review</button>
+        <span id="saveStatus">Saved ✓</span>
+      </div>
+    </div>
+
+    <div class="review-history">
+      <h3>Past Reviews</h3>
+      <div id="reviewHistoryList"></div>
+    </div>
+  </section>
+
+</div>
+
+<!-- ===================== TRADE MODAL ===================== -->
+<div class="overlay" id="tradeOverlay" hidden>
+  <div class="modal">
+    <h2 id="modalTitle">New Trade</h2>
+    <form id="tradeForm">
+      <div class="field-row">
+        <div class="field">
+          <label>Pair</label>
+          <input type="text" id="f_pair" placeholder="e.g. EURUSD" required autocomplete="off">
+        </div>
+        <div class="field">
+          <label>Date</label>
+          <input type="date" id="f_date" required>
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label>Direction <span class="hint">(optional)</span></label>
+          <select id="f_direction">
+            <option value="">—</option>
+            <option value="long">Long</option>
+            <option value="short">Short</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>R Multiple <span class="hint">(e.g. 2 or −1)</span></label>
+          <input type="number" id="f_r" step="0.1" placeholder="0.0" required>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Result</label>
+        <div class="result-toggle" id="resultToggle">
+          <button type="button" data-r="win">Win</button>
+          <button type="button" data-r="loss">Loss</button>
+          <button type="button" data-r="be">B/E</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Reason for entering</label>
+        <textarea id="f_reason" placeholder="What setup, confirmation, or signal made you take this trade?" required></textarea>
+      </div>
+
+      <div class="field">
+        <label>Notes <span class="hint">(optional — exit reasoning, lessons)</span></label>
+        <textarea id="f_notes" placeholder="Anything else worth remembering about this trade."></textarea>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label>Entry screenshot</label>
+          <div class="dropzone" id="dz_entry">
+            <div class="dz-inner">Tap to upload</div>
+            <input type="file" accept="image/*" id="f_entry_img">
+          </div>
+        </div>
+        <div class="field">
+          <label>Exit screenshot</label>
+          <div class="dropzone" id="dz_exit">
+            <div class="dz-inner">Tap to upload</div>
+            <input type="file" accept="image/*" id="f_exit_img">
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" id="cancelModalBtn">Cancel</button>
+        <button type="submit" class="btn-primary">Save Trade</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ===================== LIGHTBOX ===================== -->
+<div class="lightbox" id="lightbox" hidden>
+  <button class="lb-close" id="lbClose" aria-label="Close">×</button>
+  <div id="lbContent" class="lb-loading">Loading…</div>
+</div>
+
+</body>
+</html>
